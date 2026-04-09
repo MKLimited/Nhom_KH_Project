@@ -20,7 +20,7 @@ class CommentController extends Controller
         ]);
 
         $comment = Comment::create([
-            'idea_id' => $ideaId, // Lấy ID của bài viết từ URL
+            'idea_id' => $ideaId,
             'user_id' => $validated['user_id'],
             'content' => $validated['content'],
             'is_anonymous' => $validated['is_anonymous'] ?? false,
@@ -28,7 +28,6 @@ class CommentController extends Controller
         // --- GỬI EMAIL CHO TÁC GIẢ Ý TƯỞNG ---
         $idea = Idea::with('user')->find($ideaId);
 
-        // Kiểm tra để tránh gửi email cho chính mình nếu tự comment vào bài mình
         if ($idea->user->id !== $comment->user_id) {
             Mail::to($idea->user->email)->send(new NewCommentMail($comment));
         }

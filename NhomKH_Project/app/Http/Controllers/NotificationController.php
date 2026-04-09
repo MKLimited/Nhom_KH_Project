@@ -14,7 +14,6 @@ class NotificationController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Map dữ liệu để format đúng y xì đúc requirement của Frontend
         $formatted = $notifications->map(function ($notif) {
             return [
                 'id' => $notif->id,
@@ -22,12 +21,10 @@ class NotificationController extends Controller
                 'message' => $notif->message,
                 'is_read' => $notif->is_read,
                 'idea_id' => $notif->idea_id,
-                // Format ngày giờ ra chuẩn ISO 8601 giống ảnh (có chữ T và Z)
                 'created_at' => $notif->created_at->toIso8601String()
             ];
         });
 
-        // Frontend yêu cầu trả về một mảng [] trực tiếp, không bọc trong data hay status
         return response()->json($formatted, 200);
     }
 }

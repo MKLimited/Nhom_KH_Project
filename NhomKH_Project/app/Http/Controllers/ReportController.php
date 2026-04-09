@@ -10,10 +10,9 @@ use ZipArchive;
 
 class ReportController extends Controller
 {
-    // 1. API Thống kê & Báo cáo ngoại lệ (Exception Reports)
+    // 1. API Thống kê & Báo cáo ngoại lệ
     public function statistics()
     {
-        // Lấy số lượng và các ý tưởng chưa có ai bình luận
         $ideasWithoutComments = Idea::doesntHave('comments')->get();
 
         return response()->json([
@@ -48,7 +47,6 @@ class ReportController extends Controller
 
         $callback = function() use($ideas, $columns) {
             $file = fopen('php://output', 'w');
-            // Thêm BOM (Byte Order Mark) để file CSV không bị lỗi font tiếng Việt khi mở bằng Excel
             fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
             fputcsv($file, $columns);
 
@@ -72,25 +70,20 @@ class ReportController extends Controller
     public function exportZip()
     {
         $zip = new ZipArchive();
-        // Tạo file zip tạm thời trong thư mục storage
         $zipFileName = 'Tai_Lieu_Dinh_Kem.zip';
         $zipFilePath = storage_path('app/' . $zipFileName);
 
         if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
-            // Quét tìm toàn bộ file trong thư mục storage/app/public/uploads
             $files = Storage::disk('public')->files('uploads');
 
             foreach ($files as $file) {
-                // Đường dẫn tuyệt đối của file trên máy tính
                 $absolutePath = storage_path('app/public/' . $file);
-                // Lấy mỗi cái tên file để bỏ vào ZIP cho đẹp
                 $relativeNameInZip = basename($file);
                 $zip->addFile($absolutePath, $relativeNameInZip);
             }
             $zip->close();
         }
 
-        // Tải file ZIP về máy và tự động xóa file tạm trên server sau khi tải xong
         return response()->download($zipFilePath)->deleteFileAfterSend(true);
     }
 }

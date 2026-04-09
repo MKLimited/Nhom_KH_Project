@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Category; // Nhớ phải có dòng này để gọi được bảng Category
+use App\Models\Category;
 
 class CategoryController extends Controller
 {
@@ -13,7 +13,6 @@ class CategoryController extends Controller
     // =========================================================================
     public function index()
     {
-        // Khôi phục lại lệnh withCount để nó đếm số bài viết
         $categories = Category::withCount('ideas')->get();
 
         return response()->json([
@@ -28,7 +27,6 @@ class CategoryController extends Controller
     // =========================================================================
     public function store(Request $request)
     {
-        // Validate: Bắt buộc nhập tên và không được trùng lặp trong database
         $request->validate([
             'name' => 'required|string|unique:categories,name'
         ]);
@@ -55,7 +53,6 @@ class CategoryController extends Controller
 
         // 2. LOGIC CHẶN CỬA: Đếm xem có Idea nào đang xài Category này không
         if ($category->ideas()->count() > 0) {
-            // Nếu lớn hơn 0 -> Trả về lỗi 400 (Bad Request)
             return response()->json([
                 'status' => 'error',
                 'message' => 'Không thể xóa! Danh mục này đang chứa bài viết. Vui lòng xóa hết bài viết trước.'

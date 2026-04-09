@@ -15,11 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'login',
             'ideas',
-            'ideas/*', // Dòng này sẽ bỏ chặn cho cả /ideas/1/comments
+            'ideas/*',
             'ideas/*/react',
-            'api/*',    // Bỏ qua cho mọi API (như /api/ideas)
-            'login',    // Bỏ qua cho lúc đăng nhập
-            'register'  // Bỏ qua cho lúc đăng ký
+            'api/*',
+            'login',
+            'register'
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

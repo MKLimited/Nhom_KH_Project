@@ -9,7 +9,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Lệnh này sẽ tự động sinh ra cột 'deleted_at' kiểu TIMESTAMP, cho phép NULL
             $table->softDeletes();
         });
     }
@@ -17,7 +16,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Lệnh này dùng để xóa cột đi nếu bạn hối hận muốn quay xe (Rollback)
             $table->dropSoftDeletes();
         });
     }

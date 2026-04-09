@@ -34,7 +34,6 @@ class AdminController extends Controller
     // 2. BÁO CÁO: BÀI VIẾT KHÔNG CÓ BÌNH LUẬN
     public function noComments()
     {
-        // doesntHave('feedbacks'): Tuyệt chiêu của Laravel để lọc những bài mồ côi comment
         $ideas = Idea::doesntHave('feedbacks')
                      ->with(['user.department', 'categories'])
                      ->get();
@@ -55,7 +54,6 @@ class AdminController extends Controller
     // 4. API: DỮ LIỆU BIỂU ĐỒ PIE CHART
     public function chartData()
     {
-        // Gộp 3 bảng lại để đếm số ý tưởng của từng phòng ban
         $chartData = DB::table('ideas')
             ->join('users', 'ideas.user_id', '=', 'users.id')
             ->join('departments', 'users.department_id', '=', 'departments.id')
@@ -67,7 +65,6 @@ class AdminController extends Controller
         $labels = $chartData->pluck('department_name');
         $data = $chartData->pluck('total_ideas');
 
-        // Trả về đúng form JSON Frontend yêu cầu (Không bọc thêm chữ 'data' hay 'status' ở ngoài)
         return response()->json([
             'labels' => $labels,
             'data' => $data
@@ -80,7 +77,6 @@ class AdminController extends Controller
     // =========================================================================
     public function indexUsers()
     {
-        // Kéo danh sách User kèm theo tên phòng ban của họ
         $users = User::with('department')->orderBy('created_at', 'desc')->get();
 
         return response()->json([
@@ -100,17 +96,16 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6',
-            'role' => 'required|string', // Lưu ý: Nếu DB bạn dùng 'role_id' thì sửa lại chữ này
-            'department_id' => 'required|exists:departments,id' // Bắt buộc phải thuộc về 1 khoa nào đó
+            'role' => 'required|string',
+            'department_id' => 'required|exists:departments,id'
         ]);
 
         // 2. Lưu vào Database
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            // 🔥 Cực kỳ quan trọng: Phải băm mật khẩu ra, nếu không User sẽ không thể login được!
             'password' => Hash::make($request->password),
-            'role_id' => $request->role,  // <-- ĐÃ SỬA CHỮ 'role' THÀNH 'role_id' Ở ĐÂY NÈ
+            'role_id' => $request->role,
             'department_id' => $request->department_id
         ]);
 
@@ -132,9 +127,7 @@ class AdminController extends Controller
         // 1. VALIDATION THÔNG MINH
         $request->validate([
             'name' => 'required|string|max:255',
-            // Rule unique: Bỏ qua chính ID của user này để không bị báo trùng email cũ
             'email' => ['required', 'email', Rule::unique('users')->ignore($id)],
-            // Password để nullable (không bắt buộc), chỉ bắt nhập nếu muốn đổi
             'password' => 'nullable|string|min:6',
             'role' => 'required',
             'department_id' => 'required|exists:departments,id'
@@ -144,11 +137,11 @@ class AdminController extends Controller
         $updateData = [
             'name' => $request->name,
             'email' => $request->email,
-            'role_id' => $request->role, // Map biến 'role' của Frontend vào 'role_id'
+            'role_id' => $request->role,
             'department_id' => $request->department_id,
         ];
 
-        // 3. XỬ LÝ PASSWORD (Chỉ đổi nếu có nhập mới)
+        // 3. XỬ LÝ PASSWORD
         if ($request->filled('password')) {
             $updateData['password'] = Hash::make($request->password);
         }
@@ -168,11 +161,7 @@ class AdminController extends Controller
     // =========================================================================
     public function destroyUser($id)
     {
-        // Tìm User (nếu không thấy sẽ tự văng lỗi 404 chuẩn chỉ)
         $user = User::findOrFail($id);
-
-        // Đã bọc Soft Deletes ở Model nên lệnh delete() này vô cùng an toàn.
-        // Nó KHÔNG xóa mất data, mà chỉ điền ngày giờ vào cột 'deleted_at'.
         $user->delete();
 
         return response()->json([
@@ -184,33 +173,30 @@ class AdminController extends Controller
     // =========================================================================
     // 9. API: ADMIN ÉP SỬA Ý TƯỞNG BẤT KỲ (HỖ TRỢ ĐỔI CẢ FILE)
     // Route: PUT /api/admin/ideas/{id}
-    // (Lưu ý: Frontend gửi POST + _method:PUT thì Route này vẫn hoạt động bình thường)
     // =========================================================================
     public function forceUpdateIdea(Request $request, $id)
     {
         $idea = Idea::findOrFail($id);
 
-        // 1. Validate dữ liệu (Mở khóa cho content và file)
+        // 1. Validate dữ liệu
         $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'nullable|string',
             'file' => 'nullable|file|max:10240' // Giới hạn file 10MB
         ]);
 
-        // 2. Cập nhật phần Chữ (Title, Content)
+        // 2. Cập nhật phần Chữ
         $idea->update([
             'title' => $request->input('title'),
             'content' => $request->input('content') ?? $idea->content,
         ]);
 
-        // 3. Xử lý File (Đúng chuẩn "Xóa cũ - Lưu mới" Frontend dặn)
+        // 3. Xử lý File
         if ($request->hasFile('file')) {
             $newFile = $request->file('file');
 
-            // Laravel lưu file và trả về kiểu 'attachments/file.pdf'
             $path = $newFile->store('attachments', 'public');
 
-            // 🔥 FIX LỖI DÍNH CHÙM: Tự động thêm '/storage/' vào trước đường dẫn
             $finalPath = '/storage/' . $path;
 
             $oldAttachment = $idea->attachments()->first();
@@ -238,7 +224,6 @@ class AdminController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Admin đã ép cập nhật ý tưởng và đính kèm thành công!',
-            // Trả về data mới nhất kèm thông tin file cho Frontend load lại giao diện
             'data' => $idea->load('attachments')
         ], 200);
     }
@@ -251,20 +236,15 @@ class AdminController extends Controller
     {
         $idea = Idea::findOrFail($id);
 
-        // 🚀 BƯỚC QUAN TRỌNG: XÓA DÂY CHUYỀN (CASCADE) ĐỂ TRÁNH LỖI KHÓA NGOẠI
 
         // 1. Gỡ liên kết với các Danh mục (Category) trong bảng trung gian
         $idea->categories()->detach();
 
         // 2. Xóa sạch Bình luận thuộc về bài viết này
-        // (Lưu ý: Nếu hàm trong Model Idea của bạn tên là 'comments' thì sửa lại chữ 'feedbacks' thành 'comments')
         $idea->feedbacks()->delete();
 
-        // 3. Cắt đứt các liên kết khác (Nếu DB bạn có làm bảng Reactions hay Attachments thì mở comment ra)
-        // $idea->reactions()->delete();
-        // $idea->attachments()->delete();
+        // 3. Cắt đứt các liên kết khác
 
-        // 4. Cuối cùng, kết liễu bài viết
         $idea->delete();
 
         return response()->json([
@@ -294,7 +274,6 @@ class AdminController extends Controller
         $filePath = storage_path('app/public/' . $filename);
         $handle = fopen($filePath, 'w');
 
-        // Ghi BOM để Excel đọc tiếng Việt UTF-8 không bị lỗi font
         fputs($handle, $bom =( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
 
         // Ghi dòng tiêu đề (Header)
@@ -338,31 +317,25 @@ class AdminController extends Controller
         $zipPath = storage_path('app/public/' . $fileName);
 
         if ($zip->open($zipPath, \ZipArchive::CREATE) === TRUE) {
-            // Lấy toàn bộ file đính kèm trong Database (Nếu bảng của bạn tên khác thì đổi chỗ Attachment)
             $attachments = \App\Models\Attachment::all();
             $hasFiles = false;
 
             foreach ($attachments as $attachment) {
-                // Xử lý cắt bỏ chữ '/storage/' để lấy đường dẫn thật sự trong ổ cứng
                 $cleanPath = str_replace('/storage/', '', $attachment->file_path);
                 $absolutePath = storage_path('app/public/' . $cleanPath);
 
-                // Nếu file thực sự tồn tại trên ổ cứng thì mới nhét vào ZIP
                 if (file_exists($absolutePath) && !is_dir($absolutePath)) {
-                    // Nhét file vào zip và lấy tên gốc do người dùng đặt để lưu
                     $zip->addFile($absolutePath, $attachment->file_name);
                     $hasFiles = true;
                 }
             }
             $zip->close();
 
-            // Nếu không có file nào thì báo lỗi, xóa file zip rỗng đi
             if (!$hasFiles) {
                 if (file_exists($zipPath)) unlink($zipPath);
                 return response('Hệ thống hiện tại chưa có file đính kèm nào!', 404);
             }
 
-            // Trả về file ZIP để tải xuống và tự dọn rác
             return response()->download($zipPath)->deleteFileAfterSend(true);
         }
 

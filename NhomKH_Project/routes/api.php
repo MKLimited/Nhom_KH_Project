@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\IdeaController;
-use App\Http\Controllers\CategoryController; // Đã thêm để dùng cho hàm Xóa
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\NotificationController;
 
@@ -16,7 +16,6 @@ use App\Http\Controllers\NotificationController;
 
 // --- 1. CÁC API KHÔNG CẦN ĐĂNG NHẬP (PUBLIC) ---
 
-// Bẫy lỗi 401: Chặn Frontend văng lỗi 500 khi quên truyền Accept: application/json
 Route::get('/login', function () {
     return response()->json([
         'status' => 'error',
@@ -32,12 +31,11 @@ Route::post('/register', [AuthController::class, 'register']);
 
 
 // --- 2. CÁC API BẮT BUỘC PHẢI CÓ TOKEN (PRIVATE) ---
-// Gom tất cả vào chung 1 Group duy nhất cho gọn và an toàn!
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
 
-    // Lấy thông tin user đang đăng nhập (Rất cần cho Frontend để hiển thị tên Góc phải màn hình)
-    // Lấy thông tin user đang đăng nhập
+
     Route::get('/user', function (Request $request) {
         $user = $request->user()->load('department', 'role');
 
@@ -47,7 +45,6 @@ Route::middleware('auth:sanctum')->group(function () {
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                // Ép nó trả về đúng cái tên quyền (ví dụ: 'Admin') để Frontend dễ đọc
                 'role' => $user->role ? $user->role->name : 'Staff',
                 'department_id' => $user->department_id,
                 'department_name' => $user->department ? $user->department->name : ''
@@ -59,7 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // MODULE: Ý TƯỞNG (IDEAS)
     // --------------------------------------------------------
 
-    // CỬA SỐ 1: Lấy danh sách ý tưởng đổ ra Dashboard (Hết lỗi 405)
+    // CỬA SỐ 1: Lấy danh sách ý tưởng đổ ra Dashboard
     Route::get('/ideas', [IdeaController::class, 'index']);
 
     // CỬA SỐ 2: Nộp ý tưởng mới
@@ -68,7 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // CỬA SỐ 3: Ghim / Gỡ ghim bài nổi bật (Dành cho Sếp)
     Route::post('/ideas/{id}/feature', [IdeaController::class, 'toggleFeature']);
 
-    // CỬA SỐ 4: Xem chi tiết 1 Idea (Kèm comment)
+    // CỬA SỐ 4: Xem chi tiết 1 Idea
     Route::get('/ideas/{id}', [IdeaController::class, 'show']);
 
     // CỬA SỐ 5: Gửi Comment vào Idea
@@ -94,23 +91,23 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/categories', [\App\Http\Controllers\CategoryController::class, 'store']);
         Route::delete('/categories/{id}', [\App\Http\Controllers\CategoryController::class, 'destroy']);
-        // API Dữ liệu Biểu đồ (Pie Chart)
+        // API Dữ liệu Biểu đồ
         Route::get('/chart-data', [\App\Http\Controllers\AdminController::class, 'chartData']);
-        // API Quản lý Tài khoản (Users)
+        // API Quản lý Tài khoản
         Route::get('/users', [\App\Http\Controllers\AdminController::class, 'indexUsers']);
         Route::post('/users', [\App\Http\Controllers\AdminController::class, 'storeUser']);
 
-        // NHÓM 2: BÁO CÁO NGOẠI LỆ (EXCEPTIONS)
+        // NHÓM 2: BÁO CÁO NGOẠI LỆ
         Route::get('/exceptions/no-comments', [\App\Http\Controllers\AdminController::class, 'noComments']);
         Route::get('/exceptions/anonymous', [\App\Http\Controllers\AdminController::class, 'anonymousIdeas']);
 
         // API Update và Delete User
         Route::put('/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser']);
         Route::delete('/users/{id}', [\App\Http\Controllers\AdminController::class, 'destroyUser']);
-        // API Admin "sinh sát" Ý tưởng (Ideas)
+        // API Admin "sinh sát" Ý tưởng
         Route::put('/ideas/{id}', [\App\Http\Controllers\AdminController::class, 'forceUpdateIdea']);
         Route::delete('/ideas/{id}', [\App\Http\Controllers\AdminController::class, 'forceDeleteIdea']);
-        // API EXPORT FILE DÀNH CHO ADMIN (Dùng token trên URL)
+        // API EXPORT FILE DÀNH CHO ADMIN
 
 
     });
@@ -122,8 +119,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 // =========================================================================
-// API EXPORT FILE DÀNH CHO ADMIN (Dùng token trên URL, không cần Header)
-// ĐẶT BÊN NGOÀI MỌI MIDDLEWARE ĐỂ TRÁNH LỖI 401 VÀ 404
+// API EXPORT FILE DÀNH CHO ADMIN
 // =========================================================================
 Route::get('/admin/export/csv', [\App\Http\Controllers\AdminController::class, 'exportCsv']);
 Route::get('/admin/export/zip', [\App\Http\Controllers\AdminController::class, 'exportZip']);

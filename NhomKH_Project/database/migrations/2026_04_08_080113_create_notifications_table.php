@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            // user_id là người sẽ NHẬN thông báo
+
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('type'); // Ví dụ: 'comment', 'like', 'new_idea'
+            $table->string('type');
             $table->string('message');
-            $table->boolean('is_read')->default(false); // Mặc định là chưa đọc
-            $table->unsignedBigInteger('idea_id')->nullable(); // Có thể null nếu thông báo ko gắn với idea nào
+            $table->boolean('is_read')->default(false);
+            $table->unsignedBigInteger('idea_id')->nullable();
             $table->timestamps();
         });
     }

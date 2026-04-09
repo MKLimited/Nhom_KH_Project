@@ -14,6 +14,6 @@ class Notification extends Model
     ];
 
     protected $casts = [
-        'is_read' => 'boolean', // Tự động ép kiểu về true/false cho giống Frontend
+        'is_read' => 'boolean',
     ];
 }

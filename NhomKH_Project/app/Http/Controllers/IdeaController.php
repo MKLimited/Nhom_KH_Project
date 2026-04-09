@@ -10,7 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\File; // Thêm File Facade để dùng cho ZIP
+use Illuminate\Support\Facades\File;
 use App\Mail\NewIdeaMail;
 use Carbon\Carbon;
 use App\Models\Notification;
@@ -43,7 +43,7 @@ class IdeaController extends Controller
         // Mặc định sắp xếp theo bài mới nhất
         $query->orderBy('created_at', 'desc');
 
-        // Frontend tự lo phân trang nên Backend nhả full toàn bộ dữ liệu ra
+
         $ideas = $query->get();
 
         return response()->json([
@@ -135,22 +135,16 @@ class IdeaController extends Controller
         // LOGIC TỰ ĐỘNG BÁO CHO TẤT CẢ QA COORDINATOR TRONG CÙNG KHOA
         // =========================================================
 
-        // 1. Cài đặt Role ID của chức vụ QA Coordinator (Giả sử trong bảng roles, QA là số 2)
         $qaRoleId = 3;
 
-        // 2. Đi tìm TẤT CẢ những người làm QA Coordinator của Khoa đó
-        // - Lọc department_id trùng với khoa của người đăng bài
-        // - Lọc role_id là quyền QA Coordinator
-        // - Dùng get() để lấy ra toàn bộ danh sách (dù là 1 người, 10 người hay 100 người)
         $qaCoordinators = \App\Models\User::where('department_id', $request->user()->department_id)
                                           ->where('role_id', $qaRoleId)
                                           ->get();
 
-        // 3. Nếu danh sách này có người, ta dùng foreach để gửi thông báo cho TỪNG NGƯỜI một
         if ($qaCoordinators->isNotEmpty()) {
             foreach ($qaCoordinators as $qa) {
                 \App\Models\Notification::create([
-                    'user_id' => $qa->id, // Gửi chính xác cho ID của ông QA đang được gọi tên trong vòng lặp
+                    'user_id' => $qa->id,
                     'type' => 'new_idea',
                     'message' => 'Sinh viên ' . $request->user()->name . ' trong Khoa của bạn vừa nộp một ý tưởng mới.',
                     'idea_id' => $idea->id
@@ -161,16 +155,14 @@ class IdeaController extends Controller
         // LOGIC BÁO CHO TẤT CẢ MỌI NGƯỜI CÙNG NGÀNH/KHOA
         // =========================================================
 
-        // 1. Tìm tất cả "đồng môn" cùng khoa VÀ TRỪ BẢN THÂN NGƯỜI ĐĂNG RA
         $colleagues = \App\Models\User::where('department_id', $request->user()->department_id)
                                       ->where('id', '!=', $request->user()->id)
                                       ->get();
 
-        // 2. Dùng súng liên thanh (foreach) bắn thông báo cho từng người
         if ($colleagues->isNotEmpty()) {
             foreach ($colleagues as $colleague) {
                 \App\Models\Notification::create([
-                    'user_id' => $colleague->id, // Gửi cho người đồng nghiệp
+                    'user_id' => $colleague->id,
                     'type' => 'new_idea_department',
                     'message' => 'Thành viên ' . $request->user()->name . ' trong Khoa của bạn vừa chia sẻ một ý tưởng mới. Vào xem ngay!',
                     'idea_id' => $idea->id
@@ -243,7 +235,6 @@ class IdeaController extends Controller
             'idea_id' => $id,
             'user_id' => $userId,
             'content' => $request->input('content'),
-            // 🔥 Dùng hàm boolean() để tự động dịch 'true', '1', 'on' thành số 1 lưu vào DB
             'is_anonymous' => $request->boolean('is_anonymous')
         ]);
 
@@ -251,17 +242,14 @@ class IdeaController extends Controller
         // 2. CODE BẮN THÔNG BÁO ĐƯỢC CHÈN VÀO ĐÂY (TRƯỚC KHI RETURN)
         // =========================================================
 
-        // Kéo bài viết ra để biết ai là tác giả (user_id của bài viết)
         $idea = \App\Models\Idea::findOrFail($id);
 
-        // Chỉ gửi thông báo nếu người comment KHÔNG PHẢI là chủ bài viết
         if ($idea->user_id !== $userId) {
 
-            // Lấy tên người comment (Nếu ẩn danh thì hiện chữ 'Một người giấu tên', ngược lại lấy tên thật)
             $commenterName = $request->boolean('is_anonymous') ? 'Một người giấu tên' : ($request->user()->name ?? 'Ai đó');
 
             \App\Models\Notification::create([
-                'user_id' => $idea->user_id, // Gửi cho chủ bài viết
+                'user_id' => $idea->user_id,
                 'type' => 'comment',
                 'message' => $commenterName . ' đã bình luận bài viết của bạn.',
                 'idea_id' => $idea->id
@@ -304,8 +292,6 @@ class IdeaController extends Controller
     {
         $idea = Idea::findOrFail($id);
 
-        // 🔥 SỬA CHỮ 'view_count' THÀNH ĐÚNG TÊN CỘT TRONG BẢNG IDEAS CỦA BẠN
-        // Ví dụ: Nếu DB của bạn tên cột là 'views', thì sửa thành $idea->increment('views');
         $idea->increment('views_count');
 
         return response()->json([
@@ -333,7 +319,7 @@ class IdeaController extends Controller
 
         $callback = function() use($ideas) {
             $file = fopen('php://output', 'w');
-            fputs($file, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) )); // Thêm BOM để không lỗi font tiếng Việt
+            fputs($file, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
 
             fputcsv($file, ['ID', 'Tiêu đề', 'Tác giả', 'Lượt Xem', 'Ngày đăng']);
 
@@ -342,7 +328,7 @@ class IdeaController extends Controller
                     $idea->id,
                     $idea->title,
                     $idea->is_anonymous ? 'Ẩn danh' : ($idea->user ? $idea->user->name : 'Unknown'),
-                    $idea->view_count, // Dùng đúng cột view_count của bạn
+                    $idea->view_count,
                     $idea->created_at->format('d/m/Y')
                 ]);
             }
@@ -365,7 +351,6 @@ class IdeaController extends Controller
         if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === TRUE) {
             $uploadPath = storage_path('app/public/uploads');
 
-            // Kiểm tra xem thư mục có tồn tại không trước khi nén
             if (File::exists($uploadPath)) {
                 $files = File::files($uploadPath);
                 foreach ($files as $key => $value) {
@@ -376,7 +361,6 @@ class IdeaController extends Controller
             $zip->close();
         }
 
-        // Nếu file zip được tạo thành công, trả về để tải xuống rồi xóa ngay cho nhẹ server
         if (file_exists($zipPath)) {
             return response()->download($zipPath)->deleteFileAfterSend(true);
         }

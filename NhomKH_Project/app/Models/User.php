@@ -24,7 +24,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role_id',       // Bổ sung dòng này
+        'role_id',
         'department_id',
     ];
 
@@ -69,8 +69,7 @@ class User extends Authenticatable
         return $this->hasMany(\App\Models\Idea::class, 'user_id');
     }
 
-    // User có thể đăng nhiều Bình luận (Comments)
-    // Dựa vào DB bài trước bạn chụp, bạn đang xài bảng 'comments' và file Comment.php
+
     public function comments()
     {
         return $this->hasMany(\App\Models\Comment::class, 'user_id');

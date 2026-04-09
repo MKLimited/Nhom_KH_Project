@@ -19,7 +19,6 @@ class AcademicYear extends Model
         'final_closure_date',
     ];
 
-    // Khai báo mối quan hệ 1-N: 1 Năm học sẽ có nhiều Ý tưởng (Ideas)
     public function ideas()
     {
         return $this->hasMany(Idea::class, 'academic_year_id', 'id');
