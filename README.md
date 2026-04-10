@@ -52,7 +52,7 @@ Trong trường hợp server live của InfinityFree được bảo trì hoặc 
 **Bước 1: Cài đặt thư viện Backend**
 
 Mở Terminal tại thư mục gốc của dự án và chạy lệnh:
-```bash
+
 composer install
 
 **Bước 2: Cấu hình Môi trường**
