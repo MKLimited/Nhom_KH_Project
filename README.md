@@ -50,27 +50,45 @@ Trong trường hợp server live của InfinityFree được bảo trì hoặc 
 **Yêu cầu hệ thống:** PHP >= 8.1, Composer, MySQL/XAMPP.
 
 **Bước 1: Cài đặt thư viện Backend**
+
 Mở Terminal tại thư mục gốc của dự án và chạy lệnh:
+
 composer install
 
 **Bước 2: Cấu hình Môi trường**
+
 Copy file .env.example thành .env. Sau đó mở XAMPP, tạo một database mới tên là nhomkh và cập nhật thông tin vào file .env:
+
    DB_CONNECTION=mysql
+
    DB_HOST=127.0.0.1
+
    DB_PORT=3306
+
    DB_DATABASE=nhomkh
+
    DB_USERNAME=root
+
    DB_PASSWORD=
 
+
 **Bước 3: Khởi tạo dữ liệu**
+
 Chạy các lệnh sau để tạo Key, cấp quyền thư mục ảnh và nạp dữ liệu mẫu:
+
    php artisan key:generate
+
    php artisan storage:link
+
    php artisan migrate --seed
-   
+
+
 **Bước 4: Khởi động Server**
+
    php artisan serve
+
 ```bash
+
 
 Sau đó, Thầy/Cô mở trình duyệt và truy cập vào: http://127.0.0.1:8000/login.html để trải nghiệm hệ thống Local.
 Nhóm KH xin chân thành cảm ơn Thầy/Cô đã dành thời gian xem xét và đánh giá đồ án của nhóm!
