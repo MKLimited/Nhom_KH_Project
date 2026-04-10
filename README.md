@@ -80,6 +80,7 @@ Run the following commands to generate the application key, link the storage dir
 
 
 **Step 4: Start the Server**
+   
    php artisan serve
 
 
