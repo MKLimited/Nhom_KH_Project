@@ -48,13 +48,13 @@ In the event of InfinityFree server maintenance or network issues, you can run t
 
 **System Requirements:** PHP >= 8.1, Composer, MySQL/XAMPP.
 
-Step 1: Install Backend Dependencies
+**Step 1: Install Backend Dependencies**
 
 Open Terminal at the project's root directory and execute:
 
 composer install
 
-Step 2: Environment Configuration
+**Step 2: Environment Configuration**
 
 Copy the .env.example file to .env. Then, open XAMPP, create a new database named nhomkh, and update the .env file with the following information:
    DB_CONNECTION=mysql
@@ -69,7 +69,7 @@ Copy the .env.example file to .env. Then, open XAMPP, create a new database name
 
    DB_PASSWORD=
 
-Step 3: Database Initialization
+**Step 3: Database Initialization**
 
 Run the following commands to generate the application key, link the storage directory for images, and populate the database with sample data:
    php artisan key:generate
@@ -79,9 +79,9 @@ Run the following commands to generate the application key, link the storage dir
    php artisan migrate --seed
 
 
-Step 4: Start the Server
+**Step 4: Start the Server**
    php artisan serve
 
 
-Afterwards, please open your browser and navigate to: http://127.0.0.1:8000/login.html to experience the Local system.
-Team KH sincerely thanks you for taking the time to review and assess our project!
+**Afterwards, please open your browser and navigate to: http://127.0.0.1:8000/login.html to experience the Local system.**
+**Team KH sincerely thanks you for taking the time to review and assess our project!**
