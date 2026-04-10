@@ -82,8 +82,7 @@ Chạy các lệnh sau để tạo Key, cấp quyền thư mục ảnh và nạp
 
 Bước 4: Khởi động Server
    php artisan serve
-```bash
 
 
-Sau đó, Thầy/Cô mở trình duyệt và truy cập vào: http://127.0.0.1:8000/login.html để trải nghiệm hệ thống Local.
-Nhóm KH xin chân thành cảm ơn Thầy/Cô đã dành thời gian xem xét và đánh giá đồ án của nhóm!
+**Sau đó, Thầy/Cô mở trình duyệt và truy cập vào: http://127.0.0.1:8000/login.html để trải nghiệm hệ thống Local.**
+**Nhóm KH xin chân thành cảm ơn Thầy/Cô đã dành thời gian xem xét và đánh giá đồ án của nhóm!**
