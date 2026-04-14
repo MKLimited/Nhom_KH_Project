@@ -207,16 +207,15 @@ class AdminController extends Controller
                     Storage::disk('public')->delete($oldAttachment->file_path);
                 }
 
-                // Cập nhật đường dẫn chuẩn vào Database
                 $oldAttachment->update([
                     'file_name' => $newFile->getClientOriginalName(),
-                    'file_path' => $finalPath // <-- ĐÃ SỬA CHỖ NÀY
+                    'file_path' => $finalPath
                 ]);
             } else {
                 // Tạo mới đường dẫn chuẩn
                 $idea->attachments()->create([
                     'file_name' => $newFile->getClientOriginalName(),
-                    'file_path' => $finalPath // <-- VÀ CẢ CHỖ NÀY
+                    'file_path' => $finalPath
                 ]);
             }
         }
